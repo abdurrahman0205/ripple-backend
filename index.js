@@ -37,11 +37,11 @@ app.get('/api/event-type', async (req, res) => {
   res.send(eventType)
 })
 
-// app.post('/api/post', (req, res) => {
-//   const data = req.body
-//   res.send("Recieved??")
-//   console.log(data)
-// })
+app.post('/api/post', (req, res) => {
+  const data = req.body
+  res.send({msg:"Recieved??", data})
+
+})
 
 
 
