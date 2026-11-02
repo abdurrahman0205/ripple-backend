@@ -6,12 +6,10 @@ import 'dotenv/config'
 const app = express()
 const client = new MongoClient(process.env.MONGODB_URL);
 
+
 app.use(cors())
 app.use(express.json())
 
-app.get('/', (req, res) => [
-  res.send('Working')
-])
 
 
 export async function connectToMongoDB() {
@@ -23,7 +21,30 @@ export async function connectToMongoDB() {
     console.dir(err);
   }
 }
-connectToMongoDB();
+const mongoClient = await connectToMongoDB();
+const db = mongoClient.db('ripple')
+//C - Collection
+const eventTypeC = db.collection('event_type');
+
+
+app.get('/', (req, res) => [
+  res.send('Working')
+])
+
+app.get('/api/event-type', async (req, res) => {
+  const eventType = await eventTypeC.find().toArray()
+  console.log(eventType);
+  res.send(eventType)
+})
+
+app.post('/api/post', (req, res) => {
+  const data = req.body
+  res.send("Recieved??")
+  console.log(data)
+})
+
+
+
 
 
 const port = process.env.PORT || 5100;
