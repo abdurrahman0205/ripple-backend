@@ -25,6 +25,7 @@ const mongoClient = await connectToMongoDB();
 const db = mongoClient.db('ripple')
 //C - Collection
 const eventTypeC = db.collection('event_type');
+const eventsCollection = db.collection('events');
 
 
 app.get('/', (req, res) => [
@@ -33,21 +34,31 @@ app.get('/', (req, res) => [
 
 app.get('/api/event-type', async (req, res) => {
   const eventType = await eventTypeC.find().toArray()
-  console.log(eventType);
-  res.send(eventType)
+  res.send(eventType);
 })
 
-app.post('/api/post', (req, res) => {
+app.post('/api/create-events', async (req, res) => {
   const data = req.body
-  res.send({msg:"Recieved??", data})
-
+  const response = await eventsCollection.insertOne(data)
+  res.send(response)
+  console.log(data);
 })
+
+app.get('/api/events', async (req, res) => {
+  const data = await eventsCollection.find().toArray()
+  res.send(data);
+})
+//Individual data
+// app.get('/api/events/:id', async (req, res) => {
+//   const data = await eventsCollection.find().toArray()
+//   res.send(data);
+// })
 
 
 
 const port = process.env.PORT || 5100;
 app.listen(port, () => {
-  console.log();
+  console.log(`Server running on port ${port}`);
 })
 
 export default app;
