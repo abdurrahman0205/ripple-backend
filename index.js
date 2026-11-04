@@ -28,6 +28,8 @@ const eventTypeC = db.collection('event_type');
 const eventsCollection = db.collection('events');
 
 
+const today = () => new Date().toISOString().split("T")[0];
+
 app.get('/', (req, res) => [
   res.send({message:'server is runing'})
 ])
@@ -45,9 +47,14 @@ app.post('/api/create-events', async (req, res) => {
 })
 
 app.get('/api/events', async (req, res) => {
-  const data = await eventsCollection.find().toArray()
+  const data = await eventsCollection.find({
+    eventDate: {
+      $gte: today()
+    }
+  }).sort({eventDate: 1}).toArray()
   res.send(data);
 })
+
 //Individual data
 // app.get('/api/events/:id', async (req, res) => {
 //   const data = await eventsCollection.find().toArray()
@@ -55,10 +62,39 @@ app.get('/api/events', async (req, res) => {
 // })
 
 
+app.get('/api/events/featured', async (req, res) => {
+  const data = await eventsCollection.find({
+    eventDate: {
+      $gte: today()
+    }
+  }).limit(6).toArray()
+  res.send(data);
+})
+
+app.get('/api/events/past-events', async (req, res) => {
+  const data = await eventsCollection.find({
+    eventDate: {
+      $lt: today()
+    }
+  }).toArray()
+  res.send(data);
+
+})
+
+app.get('/api/events/manage', async (req, res) => {
+  const data = await eventsCollection.find({
+    organizer: {
+      $eq: 'karim@gmail.com'
+    }
+  }).toArray()
+  res.send(data);
+  
+})
+
 
 const port = process.env.PORT || 5100;
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Server running on ${process.env.BASE_URL}:${port}/`);
 })
 
 export default app;
