@@ -106,12 +106,16 @@ app.get('/api/events/past-events', async (req, res) => {
 })
 
 //for manage events
+
 app.get('/api/events/manage', verifyUser, async (req, res) => {
+  // const { email } = req.params
+  
   const data = await eventsCollection.find({
     organizer: {
-      $eq: 'karim@gmail.com'
+      $eq: 'email',
     }
   }).toArray()
+
   res.send(data);
 
 })
@@ -126,10 +130,12 @@ app.get('/api/events/:id', async (req, res) => {
 
 })
 
+//verifyUser
 //joined event list get
+
 app.get('/api/users', verifyUser, async (req, res) => {
 
-  const users = await usersCollection.find().toArray()
+  const users = await usersCollection.find({},{projection: {name: 1, email: 1, _id: 0}}).toArray()
 
   res.send(users);
 })
@@ -137,13 +143,16 @@ app.get('/api/users', verifyUser, async (req, res) => {
 
 
 
-//joined event list post
-app.get('/api/events/join', verifyUser, async (req, res) => {
+// joined event list post
+app.post('/api/events/join', verifyUser, async (req, res) => {
 
   const joinedEvent = req.body;
-  const response = joinEventCollection.insertOne(joinedEvent);
+  const acknowledgeStatus = await joinEventCollection.insertOne(joinedEvent);
+  console.log(acknowledgeStatus.json());
+  
+  res.send({ status: `${acknowledgeStatus?.acknowledged ? true : false}`, message: 'server is running fine!' })
 
-  res.send(response);
+  // res.send(response);
 })
 
 
