@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import 'dotenv/config'
 
 const app = express()
@@ -31,7 +31,7 @@ const eventsCollection = db.collection('events');
 const today = () => new Date().toISOString().split("T")[0];
 
 app.get('/', (req, res) => [
-  res.send({message:'server is runing'})
+  res.send({ message: 'server is runing' })
 ])
 
 app.get('/api/event-type', async (req, res) => {
@@ -51,7 +51,7 @@ app.get('/api/events', async (req, res) => {
     eventDate: {
       $gte: today()
     }
-  }).sort({eventDate: 1}).toArray()
+  }).sort({ eventDate: 1 }).toArray()
   res.send(data);
 })
 
@@ -81,6 +81,7 @@ app.get('/api/events/past-events', async (req, res) => {
 
 })
 
+//for manage events
 app.get('/api/events/manage', async (req, res) => {
   const data = await eventsCollection.find({
     organizer: {
@@ -88,7 +89,17 @@ app.get('/api/events/manage', async (req, res) => {
     }
   }).toArray()
   res.send(data);
-  
+
+})
+
+app.get('/api/events/:id', async (req, res) => {
+
+  const { id } = req.params;
+  const event = await eventsCollection.findOne({
+    _id: new ObjectId(id)
+  })
+  res.send(event);
+
 })
 
 
