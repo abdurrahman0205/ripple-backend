@@ -54,7 +54,6 @@ const verifyUser = async (req, res, next) => {
     return res.status(500).send({ message: "Error. Unable to verify." })
   }
 
-  next()
 }
 
 const today = () => new Date().toISOString().split("T")[0];
