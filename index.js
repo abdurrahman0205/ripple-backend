@@ -129,6 +129,15 @@ app.get('/api/users', verifyUser, async (req, res) => {
   res.send(users);
 })
 
+//
+app.get('/api/events/check-event-existance/:id', async (req, res) => {
+
+  const {id} = req.params
+  const users = await joinEventCollection.find({},{projection: {joinedEventId: 1, useremail: 1, _id: 0}}).toArray()
+
+  res.send(users);
+})
+
 
 
 
@@ -190,6 +199,17 @@ app.get('/api/events/joined/:email', async (req, res) => {
 // })
 
 
+
+//get event volunteer count
+app.get('/api/events/count/:id', async (req, res) => {
+
+  const { id } = req.params;
+  const event = await joinEventCollection.find({ joinedEventId: id}).toArray()
+  res.send(event);
+
+})
+
+
 //get
 app.get('/api/events/:id', async (req, res) => {
 
@@ -200,6 +220,7 @@ app.get('/api/events/:id', async (req, res) => {
   res.send(event);
 
 })
+
 
 //patch
 app.patch('/api/events/:id', async (req, res) => {
