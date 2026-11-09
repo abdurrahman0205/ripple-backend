@@ -48,7 +48,7 @@ const verifyUser = async (req, res, next) => {
   const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}`))
 
   try {
-    const { paylod } = await jwtVerify(token, JWKS)
+    const { payload } = await jwtVerify(token, JWKS)
     next()
   } catch {
     return res.status(500).send({ message: "Error. Unable to verify." })
@@ -91,7 +91,7 @@ app.get('/api/events/featured', async (req, res) => {
     eventDate: {
       $gte: today()
     }
-  }).limit(6).toArray()
+  }).limit(6).sort({eventDate: 1}).toArray()
   res.send(data);
 })
 
@@ -105,9 +105,9 @@ app.get('/api/events/past-events', async (req, res) => {
 
 })
 
-//for manage events verifyUser,
+//for manage events
 
-app.get('/api/events/manage/:email', async (req, res) => {
+app.get('/api/events/manage/:email',verifyUser, async (req, res) => {
   const { email } = req.params
   
   const data = await eventsCollection.find({
@@ -130,7 +130,7 @@ app.get('/api/users', verifyUser, async (req, res) => {
 })
 
 //
-app.post('/api/events/status-check', async (req, res) => {
+app.post('/api/events/status-check',verifyUser, async (req, res) => {
 
   const { userEmail, eventId } = req.body
   const alreadyJoined = await joinEventCollection.findOne({
@@ -145,7 +145,7 @@ app.post('/api/events/status-check', async (req, res) => {
 
 
 // joined event list post
-app.post('/api/events/join', async (req, res) => {
+app.post('/api/events/join',verifyUser, async (req, res) => {
 
   const joinedEvent = req.body;
   console.log(joinedEvent);
@@ -156,7 +156,7 @@ app.post('/api/events/join', async (req, res) => {
 })
 
 ///leave event/delete
-app.delete('/api/events/leave', async (req, res) => {
+app.delete('/api/events/leave',verifyUser, async (req, res) => {
   const data = req.body
   const { userEmail, eventId } = data
   const response = await joinEventCollection.deleteOne({
@@ -170,20 +170,18 @@ app.delete('/api/events/leave', async (req, res) => {
 
 
 
-app.get('/api/events/joined-event', async (req, res) => {
-  const data = await joinEventCollection.find().toArray();
-  res.send(data);
+// app.get('/api/events/joined-event',verifyUser, async (req, res) => {
+//   const data = await joinEventCollection.find().toArray();
+//   res.send(data);
 
-})
+// })
 
-app.get('/api/events/joined/:email', async (req, res) => {
-
+app.get('/api/events/joined/:email', verifyUser ,async (req, res) => {
 
   const {email} = req.params
   const data = await joinEventCollection.find({$or: [{useremail: email}, {organizer: email}]}).toArray();
   
   res.send(data)
-
 
 })
 
@@ -213,7 +211,7 @@ app.get('/api/events/:id', async (req, res) => {
 
 
 //patch
-app.patch('/api/events/:id', async (req, res) => {
+app.patch('/api/events/:id',verifyUser, async (req, res) => {
 
   const { id } = req.params;
   const data = req.body;
@@ -226,7 +224,7 @@ app.patch('/api/events/:id', async (req, res) => {
 })
 
 //delete
-app.delete('/api/events/:id', async (req, res) => {
+app.delete('/api/events/:id',verifyUser, async (req, res) => {
 
   const { id } = req.params;
   const result = await eventsCollection.deleteOne(
