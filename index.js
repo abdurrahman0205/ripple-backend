@@ -130,12 +130,15 @@ app.get('/api/users', verifyUser, async (req, res) => {
 })
 
 //
-app.get('/api/events/check-event-existance/:id', async (req, res) => {
+app.post('/api/events/status-check', async (req, res) => {
 
-  const {id} = req.params
-  const users = await joinEventCollection.find({},{projection: {joinedEventId: 1, useremail: 1, _id: 0}}).toArray()
+  const { userEmail, eventId } = req.body
+  const alreadyJoined = await joinEventCollection.findOne({
+    joinedEventId: eventId,
+    useremail: userEmail,
+  });
 
-  res.send(users);
+  res.send({ users: alreadyJoined });
 })
 
 
@@ -152,12 +155,15 @@ app.post('/api/events/join', async (req, res) => {
   res.send(response);
 })
 
+///leave event/delete
 app.delete('/api/events/leave', async (req, res) => {
-
+  const data = req.body
+  const { userEmail, eventId } = data
   const response = await joinEventCollection.deleteOne({
-    
+    joinedEventId: eventId,
+    useremail: userEmail,
   });
-  console.log(response);
+
   res.send(response);
 })
 
@@ -166,37 +172,21 @@ app.delete('/api/events/leave', async (req, res) => {
 
 app.get('/api/events/joined-event', async (req, res) => {
   const data = await joinEventCollection.find().toArray();
-
   res.send(data);
-  console.log(response);
-  
-  // res.send({ status: `${acknowledgeStatus?.acknowledged ? true : false}`, message: 'server is running fine!' })
 
 })
 
 app.get('/api/events/joined/:email', async (req, res) => {
 
-  console.log("This route was called!");
-  console.log("Received ID:", req.params.email);
 
   const {email} = req.params
   const data = await joinEventCollection.find({$or: [{useremail: email}, {organizer: email}]}).toArray();
   
   res.send(data)
 
-  // res.send(response);
+
 })
 
-
-//joined event list get
-// app.get('api/events/joined/:email', async (req, res) => {
-//   const { email } = req.params
-//   console.log(email, 'email');
-//   const data = await joinEventCollection.find().toArray()
-//   res.send(data)
-
-
-// })
 
 
 
@@ -226,10 +216,12 @@ app.get('/api/events/:id', async (req, res) => {
 app.patch('/api/events/:id', async (req, res) => {
 
   const { id } = req.params;
-  const event = await eventsCollection.findOne({
-    _id: new ObjectId(id)
-  })
-  res.send(event);
+  const data = req.body;
+  const response = await eventsCollection.updateOne(
+    {_id: new ObjectId(id)},
+    {$set: data}
+  )
+  res.send(response);
 
 })
 
