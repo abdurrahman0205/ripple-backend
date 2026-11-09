@@ -68,6 +68,7 @@ app.get('/api/event-type', async (req, res) => {
 })
 
 app.post('/api/create-events', verifyUser, async (req, res) => {
+  console.log('called');
   const data = req.body
   const response = await eventsCollection.insertOne(data)
   res.send(response)
@@ -104,33 +105,22 @@ app.get('/api/events/past-events', async (req, res) => {
 
 })
 
-//for manage events
+//for manage events verifyUser,
 
-app.get('/api/events/manage', verifyUser, async (req, res) => {
-  // const { email } = req.params
+app.get('/api/events/manage/:email', async (req, res) => {
+  const { email } = req.params
   
   const data = await eventsCollection.find({
-    organizer: {
-      $eq: 'email',
-    }
+    organizer: email
   }).toArray()
 
   res.send(data);
 
 })
 
-app.get('/api/events/:id', async (req, res) => {
-
-  const { id } = req.params;
-  const event = await eventsCollection.findOne({
-    _id: new ObjectId(id)
-  })
-  res.send(event);
-
-})
 
 //verifyUser
-//joined event list get
+//joined event user list get
 
 app.get('/api/users', verifyUser, async (req, res) => {
 
@@ -143,16 +133,98 @@ app.get('/api/users', verifyUser, async (req, res) => {
 
 
 // joined event list post
-app.post('/api/events/join', verifyUser, async (req, res) => {
+app.post('/api/events/join', async (req, res) => {
 
   const joinedEvent = req.body;
-  const acknowledgeStatus = await joinEventCollection.insertOne(joinedEvent);
-  console.log(acknowledgeStatus.json());
+  console.log(joinedEvent);
+  const response = await joinEventCollection.insertOne(joinedEvent);
+
+  console.log(response);
+  res.send(response);
+})
+
+app.delete('/api/events/leave', async (req, res) => {
+
+  const response = await joinEventCollection.deleteOne({
+    
+  });
+  console.log(response);
+  res.send(response);
+})
+
+
+
+
+app.get('/api/events/joined-event', async (req, res) => {
+  const data = await joinEventCollection.find().toArray();
+
+  res.send(data);
+  console.log(response);
   
-  res.send({ status: `${acknowledgeStatus?.acknowledged ? true : false}`, message: 'server is running fine!' })
+  // res.send({ status: `${acknowledgeStatus?.acknowledged ? true : false}`, message: 'server is running fine!' })
+
+})
+
+app.get('/api/events/joined/:email', async (req, res) => {
+
+  console.log("This route was called!");
+  console.log("Received ID:", req.params.email);
+
+  const {email} = req.params
+  const data = await joinEventCollection.find({$or: [{useremail: email}, {organizer: email}]}).toArray();
+  
+  res.send(data)
 
   // res.send(response);
 })
+
+
+//joined event list get
+// app.get('api/events/joined/:email', async (req, res) => {
+//   const { email } = req.params
+//   console.log(email, 'email');
+//   const data = await joinEventCollection.find().toArray()
+//   res.send(data)
+
+
+// })
+
+
+//get
+app.get('/api/events/:id', async (req, res) => {
+
+  const { id } = req.params;
+  const event = await eventsCollection.findOne({
+    _id: new ObjectId(id)
+  })
+  res.send(event);
+
+})
+
+//patch
+app.patch('/api/events/:id', async (req, res) => {
+
+  const { id } = req.params;
+  const event = await eventsCollection.findOne({
+    _id: new ObjectId(id)
+  })
+  res.send(event);
+
+})
+
+//delete
+app.delete('/api/events/:id', async (req, res) => {
+
+  const { id } = req.params;
+  const result = await eventsCollection.deleteOne(
+    { _id: new ObjectId(id) }
+  )
+  res.send(result);
+  console.log(result);
+
+})
+
+
 
 
 const port = process.env.PORT || 5100;
